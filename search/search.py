@@ -91,58 +91,27 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     fringe = Stack()
     visited = []
-    fringe.push(problem.getStartState())
+    # fringe will store (state, action) tuple, action will track all actions up to the node explored
+    fringe.push((problem.getStartState(), []))
     visited.append(problem.getStartState())
-    all_actions = []
-    backtrack(problem, fringe, visited, all_actions)
-    return all_actions
-    
-    # while not fringe.isEmpty():
-    #     cur_state = fringe.pop()
+    return traverse(problem, fringe, visited, fringe.pop())
 
-    #     for node in problem.getSuccessors(cur_state):
-    #         print(f"node: {node}")
-    #         new_state, direction, step = node
-    #         if new_state not in visited:
-    #             print(f"node added to fringe, visited: {new_state}")
-    #             fringe.push(new_state)
-    #             all_actions.append(direction)
-    #             visited.append(new_state)
-    #             break
-    # for i in all_actions:
-    #     print(i)
-
-    # return all_actions
-    util.raiseNotDefined()
-
-def backtrack(problem, fringe, visited, all_actions):
-    if fringe.isEmpty():
-        # print("entered fringe is empty?")
-        # for node in problem.getSuccessor(visited[-1]):
-        #     new_state, direction, step = node
-        #     print(f"new state, direction: {new_state, direction}")
-        #     visited.remove(visited[-1])
-        #     if node not in visited:
-        #         all_actions.append(direction)
-        return
-
-    cur_state = fringe.pop()
-    print(cur_state)
+def traverse(problem, fringe, visited, state_action):
+    cur_state, cur_action = state_action
+    # print(f"cur_state, cur_action: {cur_state}, {cur_action}")
 
     if problem.isGoalState(cur_state):
-        print("entered goal?")
-        for i in all_actions:
-            print(f"'{i}'")
-        return all_actions
-    
+        # print(f"Reach goal.\n cur_action: {cur_action}")
+        return cur_action
+        
     for node in problem.getSuccessors(cur_state):
         new_state, direction, step = node
         if new_state not in visited:
-            print(f"node: {node}")
-            fringe.push(new_state)
-            all_actions.append(direction)
+            new_action = cur_action + [direction]
             visited.append(new_state)
-        backtrack(problem, fringe, visited, all_actions)
+            fringe.push((new_state, new_action))
+        
+    return traverse(problem, fringe, visited, fringe.pop())
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
