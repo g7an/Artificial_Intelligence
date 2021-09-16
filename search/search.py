@@ -93,7 +93,7 @@ def depthFirstSearch(problem):
     # fringe will store (state, action) tuple, action will track all actions up to the node explored
     fringe.push((problem.getStartState(), []))
     visited.append(problem.getStartState())
-    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "dfs")
+    return traverse(problem, fringe, visited, fringe.pop(), "dfs")
 
 
 def breadthFirstSearch(problem):
@@ -102,7 +102,7 @@ def breadthFirstSearch(problem):
     fringe = Queue()
     fringe.push((problem.getStartState(), []))
     visited = [problem.getStartState()]
-    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "bfs")
+    return traverse(problem, fringe, visited, fringe.pop(), "bfs")
 
 
 def uniformCostSearch(problem):
@@ -111,7 +111,7 @@ def uniformCostSearch(problem):
     fringe = PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
     visited = [problem.getStartState()]
-    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "ucs")
+    return traverse(problem, fringe, visited, fringe.pop(), "ucs")
 
 
 def nullHeuristic(state, problem=None):
@@ -127,14 +127,14 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     fringe = PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
     visited = [problem.getStartState()]
-    return traverse(problem, fringe, visited, fringe.pop(), heuristic, "astar")
+    return traverse(problem, fringe, visited, fringe.pop(), "astar", heuristic)
 
 
-def traverse(problem, fringe, visited, item_n_cost, heuristic, fn):
+def traverse(problem, fringe, visited, fringe_ele, fn, heuristic=nullHeuristic):
     if fn in ["astar", "ucs"]:
-        cur_state, cur_action, cur_cost = item_n_cost
+        cur_state, cur_action, cur_cost = fringe_ele
     else:
-        cur_state, cur_action = item_n_cost
+        cur_state, cur_action = fringe_ele
 
     if problem.isGoalState(cur_state):
         # print(f"Reach goal.\n cur_action: {cur_action}")
@@ -151,7 +151,7 @@ def traverse(problem, fringe, visited, item_n_cost, heuristic, fn):
             else:
                 fringe.push((new_state, new_action))
         
-    return traverse(problem, fringe, visited, fringe.pop(), heuristic, fn)
+    return traverse(problem, fringe, visited, fringe.pop(), fn, heuristic)
 
 # Abbreviations
 bfs = breadthFirstSearch
