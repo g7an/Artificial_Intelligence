@@ -18,8 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-from game import Directions
-from util import Stack
+from util import Stack, Queue, PriorityQueue
 
 class SearchProblem:
     """
@@ -94,34 +93,26 @@ def depthFirstSearch(problem):
     # fringe will store (state, action) tuple, action will track all actions up to the node explored
     fringe.push((problem.getStartState(), []))
     visited.append(problem.getStartState())
-    return traverse(problem, fringe, visited, fringe.pop())
+    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "dfs")
 
-def traverse(problem, fringe, visited, state_action):
-    cur_state, cur_action = state_action
-    # print(f"cur_state, cur_action: {cur_state}, {cur_action}")
-
-    if problem.isGoalState(cur_state):
-        # print(f"Reach goal.\n cur_action: {cur_action}")
-        return cur_action
-        
-    for node in problem.getSuccessors(cur_state):
-        new_state, direction, step = node
-        if new_state not in visited:
-            new_action = cur_action + [direction]
-            visited.append(new_state)
-            fringe.push((new_state, new_action))
-        
-    return traverse(problem, fringe, visited, fringe.pop())
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = Queue()
+    fringe.push((problem.getStartState(), []))
+    visited = [problem.getStartState()]
+    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "bfs")
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = PriorityQueue()
+    fringe.push((problem.getStartState(), [], 0), 0)
+    visited = [problem.getStartState()]
+    return traverse(problem, fringe, visited, fringe.pop(), nullHeuristic, "ucs")
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -133,8 +124,34 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = PriorityQueue()
+    fringe.push((problem.getStartState(), [], 0), 0)
+    visited = [problem.getStartState()]
+    return traverse(problem, fringe, visited, fringe.pop(), heuristic, "astar")
 
+
+def traverse(problem, fringe, visited, item_n_cost, heuristic, fn):
+    if fn in ["astar", "ucs"]:
+        cur_state, cur_action, cur_cost = item_n_cost
+    else:
+        cur_state, cur_action = item_n_cost
+
+    if problem.isGoalState(cur_state):
+        # print(f"Reach goal.\n cur_action: {cur_action}")
+        return cur_action
+        
+    for node in problem.getSuccessors(cur_state):
+        new_state, direction, new_cost = node
+        if new_state not in visited:
+            new_action = cur_action + [direction]
+            visited.append(new_state)
+            if fn in ["astar", "ucs"]:
+                cost = new_cost + cur_cost + heuristic(new_state, problem)
+                fringe.push((new_state, new_action, cost), cost)
+            else:
+                fringe.push((new_state, new_action))
+        
+    return traverse(problem, fringe, visited, fringe.pop(), heuristic, fn)
 
 # Abbreviations
 bfs = breadthFirstSearch
