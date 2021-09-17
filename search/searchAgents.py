@@ -288,6 +288,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.start = (self.startingPosition, set())
+
 
     def getStartState(self):
         """
@@ -295,14 +297,15 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.start
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # goal state: pacman is on corner, list of visited_dots contains all 4 corners
+        return len(state[1]) == 4 and state[0] in self.corners
 
     def getSuccessors(self, state):
         """
@@ -314,7 +317,8 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
+        x, y = state[0]
+        visited_dots = state[1]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -323,8 +327,15 @@ class CornersProblem(search.SearchProblem):
             #   dx, dy = Actions.directionToVector(action)
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
-
             "*** YOUR CODE HERE ***"
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            next_visit_corner = visited_dots.copy()
+            if not self.walls[nextx][nexty]: # not hitting the wall
+                next_coord = (nextx, nexty)
+                if next_coord in self.corners and next_coord not in visited_dots:
+                    next_visit_corner.add(next_coord)
+                successors.append(((next_coord, next_visit_corner), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors

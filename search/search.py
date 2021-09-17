@@ -19,6 +19,10 @@ Pacman agents (in searchAgents.py).
 
 import util
 from util import Stack, Queue, PriorityQueue
+import sys
+# set max. recursive depth to 2000. 
+# TODO: is it possible to reduce recursion times by change traverse(...)? 
+sys.setrecursionlimit(2000)
 
 class SearchProblem:
     """
@@ -89,10 +93,9 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     fringe = Stack()
-    visited = []
     # fringe will store (state, action) tuple, action will track all actions up to the node explored
     fringe.push((problem.getStartState(), []))
-    visited.append(problem.getStartState())
+    visited = [problem.getStartState()]
     return traverse(problem, fringe, visited, fringe.pop(), "dfs")
 
 
