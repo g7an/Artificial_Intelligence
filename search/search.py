@@ -95,7 +95,7 @@ def depthFirstSearch(problem):
     fringe = Stack()
     # fringe will store (state, action) tuple, action will track all actions up to the node explored
     fringe.push((problem.getStartState(), []))
-    visited = [problem.getStartState()]
+    visited = []
     return traverse(problem, fringe, visited, fringe.pop(), "dfs")
 
 
@@ -104,7 +104,7 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     fringe = Queue()
     fringe.push((problem.getStartState(), []))
-    visited = [problem.getStartState()]
+    visited = []
     return traverse(problem, fringe, visited, fringe.pop(), "bfs")
 
 
@@ -113,7 +113,7 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     fringe = PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
-    visited = [problem.getStartState()]
+    visited = []
     return traverse(problem, fringe, visited, fringe.pop(), "ucs")
 
 
@@ -129,7 +129,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     fringe = PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
-    visited = [problem.getStartState()]
+    visited = []
     return traverse(problem, fringe, visited, fringe.pop(), "astar", heuristic)
 
 
@@ -142,14 +142,14 @@ def traverse(problem, fringe, visited, fringe_ele, fn, heuristic=nullHeuristic):
     if problem.isGoalState(cur_state):
         # print(f"Reach goal.\n cur_action: {cur_action}")
         return cur_action
-        
-    for node in problem.getSuccessors(cur_state):
-        new_state, direction, new_cost = node
-        if new_state not in visited:
+    
+    if cur_state not in visited:  
+        visited.append(cur_state)
+        for node in problem.getSuccessors(cur_state):
+            new_state, direction, new_cost = node
             new_action = cur_action + [direction]
-            visited.append(new_state)
             if fn in ["astar", "ucs"]:
-                cost = new_cost + cur_cost + heuristic(new_state, problem)
+                cost = problem.getCostOfActions(new_action) + heuristic(new_state, problem)
                 fringe.push((new_state, new_action, cost), cost)
             else:
                 fringe.push((new_state, new_action))
