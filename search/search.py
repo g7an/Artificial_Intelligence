@@ -22,7 +22,7 @@ from util import Stack, Queue, PriorityQueue
 import sys
 # set max. recursive depth to 2000. 
 # TODO: is it possible to reduce recursion times by change traverse(...)? 
-sys.setrecursionlimit(2000)
+sys.setrecursionlimit(5000)
 
 class SearchProblem:
     """

@@ -304,7 +304,7 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        # goal state: pacman is on corner, list of visited_dots contains all 4 corners
+        # goal state: pacman is on corner, list of visited_corners contains all 4 corners
         return len(state[1]) == 4 and state[0] in self.corners
 
     def getSuccessors(self, state):
@@ -318,7 +318,7 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
         x, y = state[0]
-        visited_dots = state[1]
+        visited_corners = state[1]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -330,10 +330,10 @@ class CornersProblem(search.SearchProblem):
             "*** YOUR CODE HERE ***"
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            next_visit_corner = visited_dots.copy()
+            next_visit_corner = visited_corners.copy()
             if not self.walls[nextx][nexty]: # not hitting the wall
                 next_coord = (nextx, nexty)
-                if next_coord in self.corners and next_coord not in visited_dots:
+                if next_coord in self.corners and next_coord not in visited_corners:
                     next_visit_corner.add(next_coord)
                 successors.append(((next_coord, next_visit_corner), action, 1))
 
@@ -367,11 +367,20 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
+    from util import manhattanDistance
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    curr = state[0]
+    visited_corners = state[1]
+
+    # use the manhattan distance of the furthest node as the heuristic
+    unvisited_corner = {node for node in corners if node not in visited_corners}
+    dist = [manhattanDistance(node, curr) for node in unvisited_corner]
+    if dist:
+        return max(dist)
+    return 0
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -494,9 +503,8 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.breadthFirstSearch(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
