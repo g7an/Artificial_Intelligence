@@ -18,11 +18,6 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-from util import Stack, Queue, PriorityQueue
-import sys
-# set max. recursive depth to 2000. 
-# TODO: is it possible to reduce recursion times by change traverse(...)? 
-sys.setrecursionlimit(20000)
 
 class SearchProblem:
     """
@@ -92,29 +87,28 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    fringe = Stack()
+    fringe = util.Stack()
     # fringe will store (state, action) tuple, action will track all actions up to the node explored
     fringe.push((problem.getStartState(), []))
     visited = []
-    return traverse(problem, fringe, visited, fringe.pop(), "dfs")
-
+    return traverse(problem, fringe, visited, "dfs")
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    fringe = Queue()
+    fringe = util.Queue()
     fringe.push((problem.getStartState(), []))
     visited = []
-    return traverse(problem, fringe, visited, fringe.pop(), "bfs")
+    return traverse(problem, fringe, visited, "bfs")
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    fringe = PriorityQueue()
+    fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
     visited = []
-    return traverse(problem, fringe, visited, fringe.pop(), "ucs")
+    return traverse(problem, fringe, visited, "ucs")
 
 
 def nullHeuristic(state, problem=None):
@@ -124,37 +118,36 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+def traverse(problem, fringe, visited, fn, heuristic=nullHeuristic):
+    while not fringe.isEmpty():
+        if fn in ["astar", "ucs"]:
+            cur_state, cur_action, cur_cost = fringe.pop()
+        else:
+            cur_state, cur_action = fringe.pop()
+
+        if problem.isGoalState(cur_state):
+            # print(f"Reach goal.\n cur_action: {cur_action}")
+            return cur_action
+        
+        if cur_state not in visited:  
+            visited.append(cur_state)
+            for node in problem.getSuccessors(cur_state):
+                new_state, direction, new_cost = node
+                new_action = cur_action + [direction]
+                if fn in ["astar", "ucs"]:
+                    cost = problem.getCostOfActions(new_action) + heuristic(new_state, problem)
+                    fringe.push((new_state, new_action, cost), cost)
+                else:
+                    fringe.push((new_state, new_action))
+
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    fringe = PriorityQueue()
+    fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
     visited = []
-    return traverse(problem, fringe, visited, fringe.pop(), "astar", heuristic)
-
-
-def traverse(problem, fringe, visited, fringe_ele, fn, heuristic=nullHeuristic):
-    if fn in ["astar", "ucs"]:
-        cur_state, cur_action, cur_cost = fringe_ele
-    else:
-        cur_state, cur_action = fringe_ele
-
-    if problem.isGoalState(cur_state):
-        # print(f"Reach goal.\n cur_action: {cur_action}")
-        return cur_action
-    
-    if cur_state not in visited:  
-        visited.append(cur_state)
-        for node in problem.getSuccessors(cur_state):
-            new_state, direction, new_cost = node
-            new_action = cur_action + [direction]
-            if fn in ["astar", "ucs"]:
-                cost = problem.getCostOfActions(new_action) + heuristic(new_state, problem)
-                fringe.push((new_state, new_action, cost), cost)
-            else:
-                fringe.push((new_state, new_action))
-        
-    return traverse(problem, fringe, visited, fringe.pop(), fn, heuristic)
+    return traverse(problem, fringe, visited, "astar", heuristic)
 
 # Abbreviations
 bfs = breadthFirstSearch
