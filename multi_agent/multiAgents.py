@@ -45,6 +45,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        # print(f"bestindex {bestIndices}")
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
@@ -66,6 +67,7 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+        import sys
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
@@ -74,7 +76,25 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        ghost_point = 0
+        for i in range(len(newGhostStates)):
+            ghost_pos = successorGameState.getGhostPosition(i+1)
+            ghost_dist = util.manhattanDistance(ghost_pos, newPos)
+            # if ghost approaches pacman, tell pacman not to get nearer by adding this punitive item
+            if ghost_dist != 0 and ghost_dist <= 4:
+                ghost_point = - 1 / ghost_dist
+        
+        food_pos = newFood.asList()
+        food_cnt = len(food_pos)
+
+        closest_dist = sys.maxsize
+        food_point = 0
+        for dot_index in range(food_cnt):
+            food_dist = util.manhattanDistance(food_pos[dot_index], newPos)
+            closest_dist = min(closest_dist, food_dist)
+            # as dist to food decreases, the impact of it increases. So we take the reverse to reflect this impact
+            food_point = 1 / closest_dist
+        return successorGameState.getScore() + ghost_point + food_point
 
 def scoreEvaluationFunction(currentGameState):
     """
