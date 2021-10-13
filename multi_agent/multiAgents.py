@@ -153,11 +153,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.isLose()
         """
         "*** YOUR CODE HERE ***"
-        pacman_legal_moves = gameState.getLegalActions(0)
-        max_val = -sys.maxsize - 1
-        max_action = None
 
-        def max_value( state, action, depth):
+        def max_value(state, depth):
             if len(state.getLegalActions(0)) == 0 or depth == self.depth or state.isWin() or state.isLose():
                 return self.evaluationFunction(state) 
             
@@ -165,10 +162,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
                 next_state = state.generateSuccessor(0, action)
-                v = max(min_value(next_state, action, 1, depth), v)
+                v = max(min_value(next_state, depth, agent_index=1), v)
             return v
 
-        def min_value( state, action, agent_index, depth):
+        def min_value(state, depth, agent_index):
             if len(state.getLegalActions(agent_index)) == 0 or depth == self.depth or \
               state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
@@ -177,14 +174,18 @@ class MinimaxAgent(MultiAgentSearchAgent):
             for action in legal_moves:
                 next_state = state.generateSuccessor(agent_index, action)
                 if agent_index < state.getNumAgents() - 1: # ghost's turn
-                    v = min(min_value(next_state, action, agent_index + 1, depth), v)
+                    v = min(min_value(next_state, depth, agent_index + 1), v)
                 else: # back to pacman's turn
-                    v = min(max_value(next_state, action, depth + 1), v)
+                    v = min(max_value(next_state, depth + 1), v)
             return v
+        
+        pacman_legal_moves = gameState.getLegalActions(0)
+        max_val = -sys.maxsize - 1
+        max_action = pacman_legal_moves[0]
 
         for action in pacman_legal_moves:
             next_state = gameState.generateSuccessor(0, action)
-            pacman_value = min_value(next_state, action, 1, depth=0)
+            pacman_value = min_value(next_state, depth=0, agent_index=1)
             if pacman_value > max_val:
               max_val = pacman_value
               max_action = action
@@ -205,7 +206,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         alpha = -sys.maxsize - 1
         beta = sys.maxsize
 
-        def max_value( state, action, depth, alpha, beta):
+        def max_value(state, alpha, beta, depth):
             if depth == self.depth or state.isWin() or state.isLose():
                 return self.evaluationFunction(state) 
             
@@ -214,7 +215,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
                 next_state = state.generateSuccessor(0, action)
-                v = max(min_value(next_state, action, 1, depth, alpha, beta), v)
+                v = max(min_value(next_state, alpha, beta, depth, agent_index=1), v)
                 
                 if v > beta:
                     return v
@@ -222,7 +223,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 alpha = max(alpha, v)
             return v
 
-        def min_value(state, action, agent_index, depth, alpha, beta):
+        def min_value(state, alpha, beta, depth, agent_index):
             if depth == self.depth or \
               state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
@@ -231,9 +232,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             for action in legal_moves:
                 next_state = state.generateSuccessor(agent_index, action)
                 if agent_index < state.getNumAgents() - 1: # ghost's turn
-                    v = min(min_value(next_state, action, agent_index + 1, depth, alpha, beta), v)
+                    v = min(min_value(next_state, alpha, beta, depth, agent_index + 1), v)
                 else: # back to pacman's turn
-                    v = min(max_value(next_state, action, depth + 1, alpha, beta), v)
+                    v = min(max_value(next_state, alpha, beta, depth + 1), v)
                 
                 if v < alpha:
                     return v
@@ -243,7 +244,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         for action in pacman_legal_moves:
             next_state = gameState.generateSuccessor(0, action)
-            pacman_value = min_value(next_state, action, 1, 0, alpha, beta)
+            pacman_value = min_value(next_state, alpha, beta, depth=0, agent_index=1)
             if pacman_value > alpha:
                 alpha = pacman_value
                 max_action = action
@@ -276,11 +277,11 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
                 next_state = state.generateSuccessor(0, action)
-                v = max(exp_value(next_state, 1, depth), v)
+                v = max(exp_value(next_state, depth, agent_index=1), v)
                 
             return v
 
-        def exp_value(state, agent_index, depth):
+        def exp_value(state, depth, agent_index):
             if depth == self.depth or \
               state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
@@ -292,14 +293,14 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 probability = 1/len(legal_moves)
                 next_state = state.generateSuccessor(agent_index, action)
                 if agent_index < state.getNumAgents() - 1: # ghost's turn
-                    v += probability * exp_value(next_state, agent_index+1, depth) 
+                    v += probability * exp_value(next_state, depth, agent_index+1) 
                 else:
                     v += probability * max_value(next_state, depth+1)
             return v
 
         for action in pacman_legal_moves:
             next_state = gameState.generateSuccessor(0, action)
-            pacman_value = exp_value(next_state, 1, 0)
+            pacman_value = exp_value(next_state, depth=0, agent_index=1)
             if pacman_value > max_val:
                 max_val = pacman_value
                 max_action = action
