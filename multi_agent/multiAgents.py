@@ -162,7 +162,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 return self.evaluationFunction(state) 
             
             v = -sys.maxsize - 1
-
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
                 next_state = state.generateSuccessor(0, action)
@@ -249,7 +248,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 alpha = pacman_value
                 max_action = action
                 
-
         return max_action
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -265,7 +263,48 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pacman_legal_moves = gameState.getLegalActions(0)
+        max_action = pacman_legal_moves[0]
+        max_val = - sys.maxsize - 1
+
+        def max_value(state, depth):
+            if depth == self.depth or state.isWin() or state.isLose():
+                return self.evaluationFunction(state) 
+            
+            v = -sys.maxsize - 1
+
+            legal_moves = state.getLegalActions(0)
+            for action in legal_moves:
+                next_state = state.generateSuccessor(0, action)
+                v = max(exp_value(next_state, 1, depth), v)
+                
+            return v
+
+        def exp_value(state, agent_index, depth):
+            if depth == self.depth or \
+              state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            
+            v = 0
+            legal_moves = state.getLegalActions(agent_index)
+            
+            for action in legal_moves:
+                probability = 1/len(legal_moves)
+                next_state = state.generateSuccessor(agent_index, action)
+                if agent_index < state.getNumAgents() - 1: # ghost's turn
+                    v += probability * exp_value(next_state, agent_index+1, depth) 
+                else:
+                    v += probability * max_value(next_state, depth+1)
+            return v
+
+        for action in pacman_legal_moves:
+            next_state = gameState.generateSuccessor(0, action)
+            pacman_value = exp_value(next_state, 1, 0)
+            if pacman_value > max_val:
+                max_val = pacman_value
+                max_action = action
+        
+        return max_action
 
 def betterEvaluationFunction(currentGameState):
     """
