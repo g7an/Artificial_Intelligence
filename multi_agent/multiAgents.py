@@ -201,7 +201,56 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pacman_legal_moves = gameState.getLegalActions(0)
+        max_action = pacman_legal_moves
+        alpha = -sys.maxsize - 1
+        beta = sys.maxsize
+
+        def max_value( state, action, depth, alpha, beta):
+            if depth == self.depth or state.isWin() or state.isLose():
+                return self.evaluationFunction(state) 
+            
+            v = -sys.maxsize - 1
+
+            legal_moves = state.getLegalActions(0)
+            for action in legal_moves:
+                next_state = state.generateSuccessor(0, action)
+                v = max(min_value(next_state, action, 1, depth, alpha, beta), v)
+                
+                if v > beta:
+                    return v
+
+                alpha = max(alpha, v)
+            return v
+
+        def min_value(state, action, agent_index, depth, alpha, beta):
+            if depth == self.depth or \
+              state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            v = sys.maxsize
+            legal_moves = state.getLegalActions(agent_index)
+            for action in legal_moves:
+                next_state = state.generateSuccessor(agent_index, action)
+                if agent_index < state.getNumAgents() - 1: # ghost's turn
+                    v = min(min_value(next_state, action, agent_index + 1, depth, alpha, beta), v)
+                else: # back to pacman's turn
+                    v = min(max_value(next_state, action, depth + 1, alpha, beta), v)
+                
+                if v < alpha:
+                    return v
+                
+                beta = min(beta, v)
+            return v
+
+        for action in pacman_legal_moves:
+            next_state = gameState.generateSuccessor(0, action)
+            pacman_value = min_value(next_state, action, 1, 0, alpha, beta)
+            if pacman_value > alpha:
+                alpha = pacman_value
+                max_action = action
+                
+
+        return max_action
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
