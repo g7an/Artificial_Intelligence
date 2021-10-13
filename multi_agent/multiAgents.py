@@ -18,6 +18,8 @@ import random, util
 
 from game import Agent
 
+import sys
+
 class ReflexAgent(Agent):
     """
       A reflex agent chooses an action at each choice point by examining
@@ -85,11 +87,9 @@ class ReflexAgent(Agent):
                 ghost_point = - 1 / ghost_dist
         
         food_pos = newFood.asList()
-        food_cnt = len(food_pos)
-
         closest_dist = sys.maxsize
         food_point = 0
-        for dot_index in range(food_cnt):
+        for dot_index in range(len(food_pos)):
             food_dist = util.manhattanDistance(food_pos[dot_index], newPos)
             closest_dist = min(closest_dist, food_dist)
             # as dist to food decreases, the impact of it increases. So we take the reverse to reflect this impact
@@ -147,9 +147,49 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
           gameState.getNumAgents():
             Returns the total number of agents in the game
+          
+          gameState.isWin()
+
+          gameState.isLose()
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pacman_legal_moves = gameState.getLegalActions(0)
+        max_val = -sys.maxsize - 1
+        max_action = None
+
+        def max_value( state, action, depth):
+            if len(state.getLegalActions(0)) == 0 or depth == self.depth or state.isWin() or state.isLose():
+                return self.evaluationFunction(state) 
+            
+            v = -sys.maxsize - 1
+
+            legal_moves = state.getLegalActions(0)
+            for action in legal_moves:
+                next_state = state.generateSuccessor(0, action)
+                v = max(min_value(next_state, action, 1, depth), v)
+            return v
+
+        def min_value( state, action, agent_index, depth):
+            if len(state.getLegalActions(agent_index)) == 0 or depth == self.depth or \
+              state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+            v = sys.maxsize
+            legal_moves = state.getLegalActions(agent_index)
+            for action in legal_moves:
+                next_state = state.generateSuccessor(agent_index, action)
+                if agent_index < state.getNumAgents() - 1: # ghost's turn
+                    v = min(min_value(next_state, action, agent_index + 1, depth), v)
+                else: # back to pacman's turn
+                    v = min(max_value(next_state, action, depth + 1), v)
+            return v
+
+        for action in pacman_legal_moves:
+            next_state = gameState.generateSuccessor(0, action)
+            pacman_value = min_value(next_state, action, 1, depth=0)
+            if pacman_value > max_val:
+              max_val = pacman_value
+              max_action = action
+        return max_action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
