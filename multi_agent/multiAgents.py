@@ -12,13 +12,23 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+"""
+Group member: 
+Shuyao Tan (stan29@jhu.edu)
+Yuyang Zhou (yzhou193@jhu.edu)
+
+Some of our codes are different, due to our own preferences of code writing.
+However, the ideas behind them are the same.
+"""
+
 from util import manhattanDistance
 from game import Directions
 import random, util
 
 from game import Agent
 
-import sys
+from sys import maxsize
+from copy import deepcopy
 
 class ReflexAgent(Agent):
     """
@@ -81,16 +91,16 @@ class ReflexAgent(Agent):
         ghost_point = 0
         for i in range(len(newGhostStates)):
             ghost_pos = successorGameState.getGhostPosition(i+1)
-            ghost_dist = util.manhattanDistance(ghost_pos, newPos)
+            ghost_dist = manhattanDistance(ghost_pos, newPos)
             # if ghost approaches pacman, tell pacman not to get nearer by adding this punitive item
             if ghost_dist != 0 and ghost_dist <= 4:
                 ghost_point = - 1 / ghost_dist
         
         food_pos = newFood.asList()
-        closest_dist = sys.maxsize
+        closest_dist = maxsize
         food_point = 0
         for dot_index in range(len(food_pos)):
-            food_dist = util.manhattanDistance(food_pos[dot_index], newPos)
+            food_dist = manhattanDistance(food_pos[dot_index], newPos)
             closest_dist = min(closest_dist, food_dist)
             # as dist to food decreases, the impact of it increases. So we take the reverse to reflect this impact
             food_point = 1 / closest_dist
@@ -158,7 +168,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             if len(state.getLegalActions(0)) == 0 or depth == self.depth or state.isWin() or state.isLose():
                 return self.evaluationFunction(state) 
             
-            v = -sys.maxsize - 1
+            v = -maxsize - 1
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
                 next_state = state.generateSuccessor(0, action)
@@ -169,7 +179,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             if len(state.getLegalActions(agent_index)) == 0 or depth == self.depth or \
               state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
-            v = sys.maxsize
+            v = maxsize
             legal_moves = state.getLegalActions(agent_index)
             for action in legal_moves:
                 next_state = state.generateSuccessor(agent_index, action)
@@ -180,7 +190,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return v
         
         pacman_legal_moves = gameState.getLegalActions(0)
-        max_val = -sys.maxsize - 1
+        max_val = -maxsize - 1
         max_action = pacman_legal_moves[0]
 
         for action in pacman_legal_moves:
@@ -203,14 +213,14 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         pacman_legal_moves = gameState.getLegalActions(0)
         max_action = pacman_legal_moves
-        alpha = -sys.maxsize - 1
-        beta = sys.maxsize
+        alpha = -maxsize - 1
+        beta = maxsize
 
         def max_value(state, alpha, beta, depth):
             if depth == self.depth or state.isWin() or state.isLose():
                 return self.evaluationFunction(state) 
             
-            v = -sys.maxsize - 1
+            v = -maxsize - 1
 
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
@@ -227,7 +237,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             if depth == self.depth or \
               state.isWin() or state.isLose():
                 return self.evaluationFunction(state)
-            v = sys.maxsize
+            v = maxsize
             legal_moves = state.getLegalActions(agent_index)
             for action in legal_moves:
                 next_state = state.generateSuccessor(agent_index, action)
@@ -266,13 +276,13 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         pacman_legal_moves = gameState.getLegalActions(0)
         max_action = pacman_legal_moves[0]
-        max_val = - sys.maxsize - 1
+        max_val = - maxsize - 1
 
         def max_value(state, depth):
             if depth == self.depth or state.isWin() or state.isLose():
                 return self.evaluationFunction(state) 
             
-            v = -sys.maxsize - 1
+            v = -maxsize - 1
 
             legal_moves = state.getLegalActions(0)
             for action in legal_moves:
@@ -312,10 +322,64 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION:
+      The evaluation function takes in the current GameStates (pacman.py) 
+      and returns a number, where higher numbers are better.
+
+      The code below extracts some useful information from the state, like the
+      remaining food (new_food), Pacman's current position (new_pos), ghost's current position,
+      and capsule's position.
+
+      We evaluate based on the Manhattan distance between Pacman's position and the nearest ghost, 
+      the whole distance from the nearest food to the last food on the board, and the whole distance 
+      from the nearest capsule to the last capsule on the board. 
+      
+      More detailed explanation on the breakdown of the overall point (i.e, the value being returned) is described as below:
+          1. the score of the current state
+          2. ghost point: a punitive point to "scare" pacman away from the ghost. the nearer the distance between ghost and 
+              pacman, the less this item will be
+          3. food point: a rewarding point calculated by iterating through the whole food path beginning from the nearest 
+              food possible. This item is represented by the inverse of distance between pacman and food (i.e. the nearer the 
+              food, the higher the result)
+          4. calsule point: similar to food point as described in point 3
+          5. speedup point: we found the autograder is very slow when we just use the sum of 1 - 4. Thus, we decide to add this
+            item as an indicator of how far the current state is between a final state
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Useful information you can extract from a GameState (pacman.py)
+    new_pos = currentGameState.getPacmanPosition()
+    new_food = currentGameState.getFood()
+    new_ghost_states = currentGameState.getGhostStates() # all ghost states
+    capsules_list = currentGameState.getCapsules()
+
+    food_list = new_food.asList()
+    # punitive item: the nearer the distance between ghost and pacman, the less the evaluation result 
+    ghost_point = 0
+    min_dist = maxsize
+    for ghost_state in new_ghost_states:
+        ghost_pos = ghost_state.getPosition()
+        min_dist = min(min_dist, manhattanDistance(ghost_pos, new_pos))
+
+    ghost_point = - 1 / min_dist if min_dist > 1 else - maxsize - 1
+
+    # reward item: the nearer the food, the higher the result
+    food_point = get_reward_item(food_list, new_pos)
+    capsule_point = get_reward_item(capsules_list, new_pos)
+    # speedup item: to make decision easier for pacman (the more the food/capsule left, the worse the situation)
+    speedup_item = -6 * (len(food_list) + len(capsules_list))
+
+    return currentGameState.getScore() + food_point + ghost_point + capsule_point + speedup_item
+
+def get_reward_item(item_list, new_pos):
+    list_copy = deepcopy(item_list)
+    sum_point = 0
+    current_pos = new_pos
+    for _ in list_copy[:]: # slice/mutate list to make sure iteration works correctly after remove elements
+        closest_item = min(list_copy, key=lambda x: manhattanDistance(x, current_pos))
+        sum_point += 1/(manhattanDistance(new_pos, closest_item))
+        current_pos = closest_item
+        list_copy.remove(closest_item)
+    return sum_point
 
 # Abbreviation
 better = betterEvaluationFunction

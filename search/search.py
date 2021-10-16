@@ -20,8 +20,7 @@ Pacman agents (in searchAgents.py).
 import util
 from util import Stack, Queue, PriorityQueue
 import sys
-# set max. recursive depth to 2000. 
-# TODO: is it possible to reduce recursion times by change traverse(...)? 
+# set max. recursive depth to 20000
 sys.setrecursionlimit(20000)
 
 class SearchProblem:
