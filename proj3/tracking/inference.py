@@ -75,7 +75,12 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        total = self.total()
+        if total == 0: 
+            return
+        for key in self.keys():
+            self[key] = self[key] / total
+        
 
     def sample(self):
         """
@@ -99,7 +104,18 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # if self.total() != 1:
+        #     self.normalize()
+        self.normalize()
+        items = sorted(self.items())
+        distribution = [item[1] for item in items]
+        values = [item[0] for item in items]
+        choice = random.random()
+        index, total = 0, distribution[0]
+        while choice > total:
+            index += 1
+            total += distribution[index]
+        return values[index]
 
 
 class InferenceModule:
