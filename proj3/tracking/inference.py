@@ -104,8 +104,6 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        # if self.total() != 1:
-        #     self.normalize()
         self.normalize()
         items = sorted(self.items())
         distribution = [item[1] for item in items]
@@ -185,7 +183,15 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        if ghostPosition == jailPosition:
+            if noisyDistance is None:
+                return 1
+            else:
+                return 0
+        if noisyDistance is None:
+            return 0
+        true_distance = manhattanDistance(pacmanPosition, ghostPosition)
+        return busters.getObservationProbability(noisyDistance, true_distance)
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -286,15 +292,21 @@ class ExactInference(InferenceModule):
 
         self.allPositions is a list of the possible ghost positions, including
         the jail position. You should only consider positions that are in
-        self.allPositions.
+        self.allPositions. (iteration needed here)
 
         The update model is not entirely stationary: it may depend on Pacman's
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        pacman_position = gameState.getPacmanPosition()
+        jail_position = self.getJailPosition()
 
+        for ghost_pos in self.allPositions:
+            # def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailPosition):
+            p = self.getObservationProb(observation, pacman_position, ghost_pos, jail_position)
+            self.beliefs[ghost_pos] = p * self.beliefs[ghost_pos]
+        
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
@@ -307,7 +319,12 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        dist = DiscreteDistribution()
+        for old_pos in self.allPositions:
+            newPosDist = self.getPositionDistribution(gameState, old_pos)
+            for newPos in newPosDist.keys():
+                dist[newPos] += self.beliefs[old_pos] * newPosDist[newPos]
+        self.beliefs = dist
 
     def getBeliefDistribution(self):
         return self.beliefs
