@@ -303,7 +303,6 @@ class ExactInference(InferenceModule):
         jail_position = self.getJailPosition()
 
         for ghost_pos in self.allPositions:
-            # def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailPosition):
             p = self.getObservationProb(observation, pacman_position, ghost_pos, jail_position)
             self.beliefs[ghost_pos] = p * self.beliefs[ghost_pos]
         
@@ -443,7 +442,7 @@ class JointParticleFilter(ParticleFilter):
         should be evenly distributed across positions in order to ensure a
         uniform prior.
         """
-        import itertools
+        from itertools import product
         self.particles = []
         "*** YOUR CODE HERE ***"
         permutations = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
