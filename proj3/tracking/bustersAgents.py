@@ -11,6 +11,13 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+"""
+Group member: 
+Shuyao Tan (stan29@jhu.edu)
+Yuyang Zhou (yzhou193@jhu.edu)
+Some of our codes are different, due to our own preferences of code writing.
+However, the ideas behind them are the same.
+"""
 
 import util
 from game import Agent
