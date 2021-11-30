@@ -1,5 +1,13 @@
 import nn
 
+"""
+Group member: 
+Shuyao Tan (stan29@jhu.edu)
+Yuyang Zhou (yzhou193@jhu.edu)
+Some of our codes are different, due to our own preferences of code writing.
+However, the ideas behind them are the same.
+"""
+
 class PerceptronModel(object):
     def __init__(self, dimensions):
         """
@@ -70,6 +78,7 @@ class RegressionModel(object):
         self.w1 = nn.Parameter(100, 1)
         self.b0 = nn.Parameter(1, 100)
         self.b1 = nn.Parameter(1, 1)
+        self.alpha = 0.1
 
 
     def run(self, x):
